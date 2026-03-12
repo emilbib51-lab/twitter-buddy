@@ -2,6 +2,8 @@
 
 Your personal Twitter/X assistant that automatically scrolls your timeline, collects tweets, analyzes trends with AI, and discovers accounts worth following — so you don't have to.
 
+你的私人推特助手 — 自动帮你刷推特、采集推文、AI 分析趋势、发现值得关注的账号。
+
 [中文说明](#中文说明)
 
 ## What It Does
