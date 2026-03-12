@@ -1,0 +1,21 @@
+{
+  "name": "private-twitter",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "login": "node collect-timeline.js --login",
+    "collect": "node collect-timeline.js",
+    "collect:5": "node collect-timeline.js --max-scrolls 5",
+    "daemon": "node daemon.js",
+    "discover": "node discover.js",
+    "discover:50": "node discover.js --max-scrolls 50",
+    "analyze": "node analyze.js",
+    "analyze:4h": "node analyze.js --hours 4",
+    "dashboard": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0",
+    "playwright": "^1.50.0"
+  }
+}
