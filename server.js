@@ -121,6 +121,15 @@ function getDiscoverContent(filename) {
   return fs.readFileSync(filepath, "utf-8");
 }
 
+function getUserScores() {
+  try {
+    if (fs.existsSync(config.userScoresFile)) {
+      return JSON.parse(fs.readFileSync(config.userScoresFile, "utf-8"));
+    }
+  } catch {}
+  return {};
+}
+
 function getTweetStats() {
   const byHour = {};  // "YYYY-MM-DD HH" => count
   const byDay = {};   // "YYYY-MM-DD" => count
@@ -405,6 +414,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     const titleHtml = '<div class="panel-title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
       '<span style="flex:1">Discover (' + files.length + ')</span>' +
       '<button class="analyze-btn" id="discover-run-btn" onclick="runDiscoverNow()" style="font-size:12px;padding:3px 10px">Run Now</button>' +
+      '<button class="analyze-btn" onclick="showUserScores()" style="font-size:12px;padding:3px 10px">📊 Scores</button>' +
       '<div style="font-size:11px;color:#71767b;font-weight:400;width:100%">Next auto-discover: <span style="color:#1d9bf0">' + nextDiscover + '</span></div>' +
       '</div>';
     if (files.length === 0) {
@@ -451,6 +461,44 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     } finally {
       if (btn) { btn.classList.remove('running'); btn.disabled = false; btn.textContent = 'Run Now'; }
     }
+  }
+
+  async function showUserScores() {
+    const res = await fetch('/api/user-scores');
+    const scores = await res.json();
+    const entries = Object.entries(scores).sort((a, b) => b[1].score - a[1].score);
+    const area = document.getElementById('content-area');
+    document.getElementById('content-header').style.display = 'flex';
+    document.getElementById('content-title').textContent = 'User Scores (' + entries.length + ' tracked)';
+    if (entries.length === 0) {
+      area.innerHTML = '<div class="placeholder">No user scores yet. Run a discover first.</div>';
+      return;
+    }
+    const rows = entries.map(([user, d]) => {
+      const scoreColor = d.score > 0 ? '#00ba7c' : d.score < 0 ? '#f4212e' : '#71767b';
+      const lastReason = d.history && d.history.length > 0 ? d.history[d.history.length - 1].reason : '';
+      const lastDelta = d.history && d.history.length > 0 ? d.history[d.history.length - 1].delta : 0;
+      const deltaStr = lastDelta > 0 ? '+' + lastDelta : lastDelta;
+      const xUrl = 'https://x.com/' + user.replace('@', '');
+      return '<tr>' +
+        '<td style="padding:8px 12px"><a href="' + xUrl + '" target="_blank" style="color:#1d9bf0;text-decoration:none">' + user + '</a></td>' +
+        '<td style="padding:8px 12px;color:' + scoreColor + ';font-weight:700;font-size:16px;text-align:center">' + d.score + '</td>' +
+        '<td style="padding:8px 12px;text-align:center;color:#71767b">' + d.appearances + '</td>' +
+        '<td style="padding:8px 12px;color:#71767b;font-size:13px">' + deltaStr + ' · ' + lastReason + '</td>' +
+        '<td style="padding:8px 12px;color:#71767b;font-size:12px">' + toUTC8(d.lastSeen).slice(5, 16) + '</td>' +
+        '</tr>';
+    }).join('');
+    area.innerHTML = '<div style="padding:24px 36px;max-width:1100px">' +
+      '<h2 style="font-size:18px;margin-bottom:16px;color:#e7e9ea">📊 User Score Leaderboard</h2>' +
+      '<p style="color:#71767b;font-size:13px;margin-bottom:16px">Scores accumulate across discover runs. High-scoring users have consistently produced quality content.</p>' +
+      '<table style="width:100%;border-collapse:collapse;background:#16202a;border-radius:12px;overflow:hidden">' +
+      '<thead><tr style="background:#1c2732;border-bottom:1px solid #2f3336">' +
+      '<th style="padding:10px 12px;text-align:left;color:#71767b;font-size:13px;font-weight:600">User</th>' +
+      '<th style="padding:10px 12px;text-align:center;color:#71767b;font-size:13px;font-weight:600">Score</th>' +
+      '<th style="padding:10px 12px;text-align:center;color:#71767b;font-size:13px;font-weight:600">Appearances</th>' +
+      '<th style="padding:10px 12px;text-align:left;color:#71767b;font-size:13px;font-weight:600">Latest</th>' +
+      '<th style="padding:10px 12px;text-align:left;color:#71767b;font-size:13px;font-weight:600">Last Seen</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
   let statsChart = null;
@@ -699,6 +747,12 @@ const server = http.createServer((req, res) => {
   if (url.pathname === "/api/discovers") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(getDiscovers()));
+    return;
+  }
+
+  if (url.pathname === "/api/user-scores") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(getUserScores()));
     return;
   }
 

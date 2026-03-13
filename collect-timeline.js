@@ -27,6 +27,7 @@ const SCAN_TWEETS_FN = `
     const quoteCard = Array.from(t.querySelectorAll('div[role="link"]')).find(
       el => el.querySelector('[data-testid="User-Name"]') && el.querySelector('[data-testid="tweetText"]') && el.querySelector('time')
     );
+    // 注：For You 时间线的推文卡片内没有 Follow 按钮，关注状态改由 discover.js 通过访问用户主页检测
     const type = isRetweet ? 'retweet' : quoteCard ? 'quote' : 'tweet';
     let quoted = null;
     if (quoteCard) {
@@ -65,7 +66,8 @@ const EXTRACT_ALL_FN = `
         type: t.type || 'tweet',
         text: t.text,
         hasMedia: t.hasMedia,
-        link: t.link
+        link: t.link,
+        isFollowed: t.isFollowed != null ? t.isFollowed : null
       };
       if (t.quoted) obj.quoted = t.quoted;
       return obj;
