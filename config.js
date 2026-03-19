@@ -87,6 +87,26 @@ module.exports = {
 关注重点：加密货币、AI/科技、宏观经济、地缘政治、深度思考、原创内容`,
   },
 
+  // 用户 Profile 分析配置
+  profile: {
+    maxScrolls: 50,
+    model: "claude-sonnet-4-6",
+    maxTokens: 8192,
+    prompt: `你是一个推特用户分析助手。以下是某个推特用户最近发布的推文数据。
+
+请用中文对该用户进行深度分析：
+
+1. **内容质量评估**：原创性、深度、信息密度。是搬运/翻译还是原创观点？
+2. **专业领域**：该用户主要关注哪些领域？在这些领域的专业程度如何？
+3. **预测准确性**：如果有市场/加密货币相关的预测或判断（看涨/看跌/价格目标），分析其历史准确性。列出具体的预测及其结果（如果可以判断）
+4. **发帖习惯**：发帖频率、活跃时间段、互动模式
+5. **影响力指标**：转发/引用比例、是否经常被引用
+6. **综合评价**：该用户值不值得长期关注？给出 1-10 分的综合评分，并说明理由
+7. **风险提示**：是否有可能是营销号、带单号、或有其他需要注意的风险信号
+
+请特别关注：加密货币交易观点、市场判断、技术分析的质量和准确性。`,
+  },
+
   // Dashboard 配置
   dashboard: { port: 3456 },
 
@@ -95,6 +115,7 @@ module.exports = {
   tweetsDir: path.join(__dirname, "data", "tweets"),
   analysisDir: path.join(__dirname, "data", "analysis"),
   discoverDir: path.join(__dirname, "data", "discover"),
+  profilesDir: path.join(__dirname, "data", "profiles"),
   userScoresFile: path.join(__dirname, "data", "discover", "user_scores.json"),
   stateFile: path.join(__dirname, "data", "state.json"),
 };

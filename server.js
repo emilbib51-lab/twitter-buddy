@@ -263,6 +263,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     <div class="view-tabs">
       <div class="view-tab active" onclick="switchView('analyses')">Analysis Reports</div>
       <div class="view-tab" onclick="switchView('discovers')">Discover</div>
+      <div class="view-tab" onclick="switchView('profiles')">Profiles</div>
       <div class="view-tab" onclick="switchView('stats')">Stats</div>
       <div class="view-tab" onclick="switchView('tweets')">Tweet Data Files</div>
     </div>
@@ -316,7 +317,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     document.getElementById('expand-btn').textContent = isExpanded ? 'Collapse' : 'Expand';
   }
 
-  const viewOrder = ['analyses', 'discovers', 'stats', 'tweets'];
+  const viewOrder = ['analyses', 'discovers', 'profiles', 'stats', 'tweets'];
   function switchView(view) {
     currentView = view;
     document.querySelectorAll('.view-tab').forEach((tab, i) => {
@@ -328,6 +329,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     document.getElementById('content-header').style.display = 'none';
     if (view === 'analyses') { loadAnalyses(); document.getElementById('content-area').innerHTML = '<div class="placeholder">Select an item to view</div>'; }
     else if (view === 'discovers') { loadDiscovers(); document.getElementById('content-area').innerHTML = '<div class="placeholder">Select an item to view</div>'; }
+    else if (view === 'profiles') { loadProfiles(); document.getElementById('content-area').innerHTML = '<div class="placeholder">Select a profile or scrape a new one</div>'; }
     else if (view === 'stats') loadStats();
     else { loadTweetFiles(); document.getElementById('content-area').innerHTML = '<div class="placeholder">Select an item to view</div>'; }
   }
@@ -336,6 +338,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     await loadStatus();
     if (currentView === 'analyses') loadAnalyses();
     else if (currentView === 'discovers') loadDiscovers();
+    else if (currentView === 'profiles') loadProfiles();
     else if (currentView === 'stats') loadStats();
     else loadTweetFiles();
   }
@@ -646,6 +649,181 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     }
   }
 
+  // ========== Profile Functions ==========
+  let _selectedProfile = null;
+
+  async function loadProfiles() {
+    const res = await fetch('/api/profiles');
+    const profiles = await res.json();
+    const list = document.getElementById('file-list');
+
+    const inputHtml = '<div style="padding:16px 20px;border-bottom:1px solid #2f3336;background:#16202a">' +
+      '<div style="font-size:16px;font-weight:700;margin-bottom:12px">User Profiles</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">' +
+        '<span style="color:#1d9bf0;font-size:14px">@</span>' +
+        '<input id="profile-handle" type="text" placeholder="e.g. elonmusk" style="flex:1;background:#0f1419;border:1px solid #2f3336;color:#e7e9ea;padding:6px 10px;border-radius:8px;font-size:13px;outline:none">' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+        '<span style="color:#71767b;font-size:12px">Scrolls:</span>' +
+        '<input id="profile-scrolls" type="number" value="50" min="5" max="500" style="width:60px;background:#0f1419;border:1px solid #2f3336;color:#e7e9ea;padding:6px 8px;border-radius:8px;font-size:13px;text-align:center;outline:none">' +
+        '<button class="btn" id="profile-scrape-btn" onclick="scrapeProfileAction()" style="margin-left:auto">Scrape</button>' +
+      '</div>' +
+    '</div>';
+
+    const profileItems = profiles.map(p => {
+      const timeRange = p.newestTime && p.oldestTime ? toUTC8(p.oldestTime).slice(0, 10) + ' ~ ' + toUTC8(p.newestTime).slice(0, 10) : '';
+      return '<div class="file-item" onclick="selectProfile(\\''+p.handle+'\\', this)">' +
+        '<div class="name">@' + p.handle + '</div>' +
+        '<div class="meta">' + p.totalTweets + ' tweets | ' + p.analysisCount + ' analyses' + (timeRange ? ' | ' + timeRange : '') + '</div>' +
+      '</div>';
+    }).join('');
+
+    list.innerHTML = inputHtml + profileItems;
+  }
+
+  async function scrapeProfileAction() {
+    const handle = document.getElementById('profile-handle').value.trim().replace(/^@/, '');
+    if (!handle) { showToast('Please enter a handle', 'error'); return; }
+    const maxScrolls = parseInt(document.getElementById('profile-scrolls').value) || 50;
+
+    const btn = document.getElementById('profile-scrape-btn');
+    btn.classList.add('running'); btn.disabled = true; btn.textContent = 'Scraping...';
+    showToast('Scraping @' + handle + ' ...', '');
+
+    try {
+      const res = await fetch('/api/profile/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle, maxScrolls })
+      });
+      const data = await res.json();
+      if (data.error) {
+        showToast('Scrape failed: ' + data.error, 'error');
+      } else {
+        showToast('Scraped ' + data.tweetCount + ' tweets from @' + handle, 'success');
+        await loadProfiles();
+        selectProfile(handle, null);
+      }
+    } catch (err) {
+      showToast('Request failed: ' + err.message, 'error');
+    } finally {
+      btn.classList.remove('running'); btn.disabled = false; btn.textContent = 'Scrape';
+    }
+  }
+
+  async function selectProfile(handle, el) {
+    _selectedProfile = handle;
+    document.querySelectorAll('.file-item').forEach(e => e.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    // Load profile analyses
+    const res = await fetch('/api/profile/' + encodeURIComponent(handle) + '/analyses');
+    const analyses = await res.json();
+
+    // Get profile stats from profiles list
+    const profilesRes = await fetch('/api/profiles');
+    const profiles = await profilesRes.json();
+    const profile = profiles.find(p => p.handle === handle);
+
+    const statsHtml = profile
+      ? '<div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">' +
+          '<div style="background:#16202a;border:1px solid #2f3336;border-radius:12px;padding:10px 16px">' +
+            '<div style="color:#71767b;font-size:12px">Tweets</div>' +
+            '<div style="color:#1d9bf0;font-size:20px;font-weight:700">' + profile.totalTweets + '</div>' +
+          '</div>' +
+          '<div style="background:#16202a;border:1px solid #2f3336;border-radius:12px;padding:10px 16px">' +
+            '<div style="color:#71767b;font-size:12px">Range</div>' +
+            '<div style="color:#e7e9ea;font-size:13px;margin-top:4px">' + (profile.oldestTime ? toUTC8(profile.oldestTime).slice(0,10) : '?') + ' ~ ' + (profile.newestTime ? toUTC8(profile.newestTime).slice(0,10) : '?') + '</div>' +
+          '</div>' +
+          '<div style="background:#16202a;border:1px solid #2f3336;border-radius:12px;padding:10px 16px">' +
+            '<div style="color:#71767b;font-size:12px">Analyses</div>' +
+            '<div style="color:#1d9bf0;font-size:20px;font-weight:700">' + profile.analysisCount + '</div>' +
+          '</div>' +
+        '</div>'
+      : '';
+
+    const controlsHtml = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap">' +
+      '<span style="color:#71767b;font-size:13px">Days:</span>' +
+      '<input id="profile-days" type="number" value="30" min="1" max="365" style="width:60px;background:#16202a;border:1px solid #2f3336;color:#e7e9ea;padding:5px 8px;border-radius:8px;font-size:13px;text-align:center;outline:none">' +
+      '<span style="color:#71767b;font-size:13px;margin-left:8px">Max tweets:</span>' +
+      '<input id="profile-max-tweets" type="number" value="500" min="10" max="5000" style="width:70px;background:#16202a;border:1px solid #2f3336;color:#e7e9ea;padding:5px 8px;border-radius:8px;font-size:13px;text-align:center;outline:none">' +
+      '<span style="color:#71767b;font-size:13px;margin-left:8px">Model:</span>' +
+      '<select id="profile-model" class="model-select">' +
+        '<option value="claude-sonnet-4-6">Sonnet 4.6</option>' +
+        '<option value="claude-opus-4-6">Opus 4.6</option>' +
+        '<option value="claude-haiku-4-5-20251001">Haiku 4.5</option>' +
+      '</select>' +
+      '<button class="btn" id="profile-analyze-btn" onclick="analyzeProfileAction()" style="margin-left:8px">Analyze</button>' +
+    '</div>';
+
+    const analysisListHtml = analyses.length > 0
+      ? '<div style="margin-bottom:16px">' +
+          '<div style="color:#71767b;font-size:13px;margin-bottom:8px">Reports:</div>' +
+          analyses.map(a =>
+            '<div class="file-item" style="padding:8px 12px;border-radius:8px;margin-bottom:4px" onclick="loadProfileReport(\\''+handle+'\\', \\''+a.filename+'\\', this)">' +
+              '<div class="name" style="font-size:13px">' + a.date + '</div>' +
+              '<div class="meta">' + (a.size / 1024).toFixed(1) + ' KB</div>' +
+            '</div>'
+          ).join('') +
+        '</div>'
+      : '';
+
+    const area = document.getElementById('content-area');
+    document.getElementById('content-header').style.display = 'flex';
+    document.getElementById('content-title').textContent = '@' + handle;
+    area.innerHTML = '<div style="padding:24px 36px;max-width:1000px">' +
+      '<h2 style="font-size:18px;margin-bottom:16px"><a href="https://x.com/' + handle + '" target="_blank" style="color:#1d9bf0;text-decoration:none">@' + handle + '</a></h2>' +
+      statsHtml + controlsHtml + analysisListHtml +
+      '<div id="profile-report-area"></div>' +
+    '</div>';
+  }
+
+  async function analyzeProfileAction() {
+    if (!_selectedProfile) return;
+    const days = parseInt(document.getElementById('profile-days').value) || 30;
+    const maxTweets = parseInt(document.getElementById('profile-max-tweets').value) || 500;
+    const model = document.getElementById('profile-model').value;
+
+    const btn = document.getElementById('profile-analyze-btn');
+    btn.classList.add('running'); btn.disabled = true; btn.textContent = 'Analyzing...';
+    showToast('Analyzing @' + _selectedProfile + ' ...', '');
+
+    try {
+      const res = await fetch('/api/profile/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle: _selectedProfile, days, maxTweets, model })
+      });
+      const data = await res.json();
+      if (data.error) {
+        showToast('Analysis failed: ' + data.error, 'error');
+      } else {
+        showToast('Analysis complete! ' + data.tweetCount + ' tweets analyzed.', 'success');
+        selectProfile(_selectedProfile, null);
+        if (data.filename) loadProfileReport(_selectedProfile, data.filename, null);
+      }
+    } catch (err) {
+      showToast('Request failed: ' + err.message, 'error');
+    } finally {
+      btn.classList.remove('running'); btn.disabled = false; btn.textContent = 'Analyze';
+    }
+  }
+
+  async function loadProfileReport(handle, filename, el) {
+    if (el) {
+      document.querySelectorAll('#profile-report-area').forEach(e => e.innerHTML = '');
+      el.classList.add('active');
+    }
+    const res = await fetch('/api/profile/' + encodeURIComponent(handle) + '/analysis/' + encodeURIComponent(filename));
+    const md = await res.text();
+    const html = marked.parse(md);
+    const reportArea = document.getElementById('profile-report-area');
+    if (reportArea) {
+      reportArea.innerHTML = '<hr style="border:none;border-top:1px solid #2f3336;margin:16px 0"><div class="md-content">' + html + '</div>';
+      reportArea.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    }
+  }
+
   // Auto-collapse top bar on report scroll
   document.querySelector('.panel-content').addEventListener('scroll', function() {
     const bar = document.getElementById('top-bar');
@@ -753,6 +931,80 @@ const server = http.createServer((req, res) => {
   if (url.pathname === "/api/user-scores") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(getUserScores()));
+    return;
+  }
+
+  // ========== Profile API Routes ==========
+
+  if (url.pathname === "/api/profiles") {
+    const { listProfiles } = require("./profile");
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(listProfiles()));
+    return;
+  }
+
+  if (url.pathname === "/api/profile/scrape" && req.method === "POST") {
+    let body = "";
+    req.on("data", chunk => body += chunk);
+    req.on("end", async () => {
+      try {
+        const { handle, maxScrolls } = JSON.parse(body);
+        if (!handle) throw new Error("handle is required");
+        const { scrapeProfile } = require("./profile");
+        const result = await scrapeProfile(handle, { maxScrolls });
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  if (url.pathname === "/api/profile/analyze" && req.method === "POST") {
+    let body = "";
+    req.on("data", chunk => body += chunk);
+    req.on("end", async () => {
+      try {
+        const { handle, days, maxTweets, model } = JSON.parse(body);
+        if (!handle) throw new Error("handle is required");
+        const { analyzeProfile } = require("./profile");
+        const result = await analyzeProfile(handle, { days, maxTweets, model });
+        if (!result) {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "No tweets found for this user" }));
+        } else {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ handle: result.handle, filename: result.filename, tweetCount: result.tweetCount }));
+        }
+      } catch (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  const profileAnalysisMatch = url.pathname.match(/^\/api\/profile\/([^/]+)\/analysis\/(.+)$/);
+  if (profileAnalysisMatch) {
+    const { getProfileAnalysisContent } = require("./profile");
+    const content = getProfileAnalysisContent(decodeURIComponent(profileAnalysisMatch[1]), decodeURIComponent(profileAnalysisMatch[2]));
+    if (content === null) {
+      res.writeHead(404);
+      res.end("Not found");
+    } else {
+      res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end(content);
+    }
+    return;
+  }
+
+  const profileAnalysesMatch = url.pathname.match(/^\/api\/profile\/([^/]+)\/analyses$/);
+  if (profileAnalysesMatch) {
+    const { getProfileAnalyses } = require("./profile");
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(getProfileAnalyses(decodeURIComponent(profileAnalysesMatch[1]))));
     return;
   }
 

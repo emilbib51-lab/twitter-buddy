@@ -134,7 +134,7 @@ async function runAnalysis(hoursAgo, model) {
 }
 
 // 导出
-module.exports = { runAnalysis, loadTweetsSince };
+module.exports = { runAnalysis, loadTweetsSince, buildTweetSummary };
 
 // CLI 模式
 if (require.main === module) {

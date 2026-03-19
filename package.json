@@ -11,6 +11,7 @@
     "discover:50": "node discover.js --max-scrolls 50",
     "analyze": "node analyze.js",
     "analyze:4h": "node analyze.js --hours 4",
+    "profile": "node profile.js",
     "dashboard": "node server.js"
   },
   "dependencies": {

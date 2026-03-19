@@ -11,7 +11,8 @@ Your personal Twitter/X assistant that automatically scrolls your timeline, coll
 - **Auto-collect tweets** — Launches Chrome, switches to your "Following" timeline (sorted by latest), scrolls and saves every tweet with deduplication
 - **AI analysis** — Periodically sends collected tweets to Claude for trend analysis, key highlights, and sentiment summary
 - **Account discovery** — Scrolls the "For You" tab and uses AI to find high-quality accounts worth following, with follow-status detection and persistent user scoring
-- **Dashboard** — Web UI to view analysis reports, discover reports, user score leaderboard, tweet volume charts, and trigger manual runs
+- **User profile analysis** — Scrape any Twitter user's timeline and get an AI-powered deep analysis: content quality, topic expertise, prediction accuracy, risk signals, and a 1-10 score
+- **Dashboard** — Web UI to view analysis reports, discover reports, user profiles, tweet volume charts, and trigger all actions manually
 
 ## Requirements
 
@@ -60,7 +61,9 @@ npm run daemon
 | `npm run analyze:4h` | Analyze recent 4h of tweets |
 | `npm run discover` | Discover accounts from "For You" |
 | `npm run discover:50` | Quick discovery (50 scrolls) |
-| `npm run dashboard` | Start dashboard only |
+| `npm run profile -- --handle <user>` | Scrape a user's tweets |
+| `npm run profile -- --handle <user> --analyze` | Analyze a user's tweets |
+| `npm run dashboard` | Start dashboard only (manual mode) |
 | `npm run login` | Log in to Twitter |
 
 ### Dashboard
@@ -69,6 +72,7 @@ Open `http://localhost:3456` after starting the daemon or dashboard.
 
 - **Analysis Reports** — AI-generated trend reports with next auto-run countdown
 - **Discover** — Account recommendations with follow status tags, "Run Now" button
+- **Profiles** — Scrape and analyze any user's timeline from the UI (enter handle, set scroll count, scrape, then analyze with configurable time range and model)
 - **User Scores** — Leaderboard of discovered accounts ranked by cumulative AI scores across runs
 - **Stats** — Tweet volume charts by hour/day
 - **Tweet Data Files** — Raw collected data
@@ -82,8 +86,28 @@ Edit `config.js` to customize:
 - `daemon.analysisIntervalMs` — Analysis frequency (default: 2 hours)
 - `discover.intervalMs` — Discovery frequency (default: 6 hours)
 - `discover.maxScrolls` — How far to scroll "For You" (default: 100)
-- `analysis.model` / `discover.model` — Claude model to use
-- `analysis.prompt` / `discover.prompt` — Custom AI prompts
+- `analysis.model` / `discover.model` / `profile.model` — Claude model to use
+- `analysis.prompt` / `discover.prompt` / `profile.prompt` — Custom AI prompts
+- `profile.maxScrolls` — Default scroll count for user profile scraping (default: 50)
+
+## User Profile Analysis
+
+Scrape any public Twitter user's timeline and get a detailed AI evaluation:
+
+```bash
+# Scrape tweets (default 50 scrolls)
+node profile.js --handle cissan_9984 --max-scrolls 50
+
+# Analyze with defaults (last 30 days, Sonnet 4.6)
+node profile.js --handle cissan_9984 --analyze
+
+# Analyze with options
+node profile.js --handle cissan_9984 --analyze --days 60 --max-tweets 500 --model claude-opus-4-6
+```
+
+Or use the **Profiles** tab in the Dashboard — enter a handle, scrape, then analyze with adjustable parameters.
+
+The analysis covers: content quality, topic expertise, prediction accuracy (especially for market/crypto calls), posting habits, a 1-10 overall score, and risk signals (marketing accounts, pump-and-dump, etc.).
 
 ## Account Discovery Details
 
@@ -104,6 +128,10 @@ data/
 ├── analysis/        # analysis_YYYY-MM-DD-HH-MM.md
 ├── discover/        # discover_YYYY-MM-DD-HH-MM.md
 │   └── user_scores.json  # persistent user scoring data
+├── profiles/        # per-user scraped data + analysis
+│   └── {handle}/
+│       ├── tweets_YYYY-MM-DD.json
+│       └── analysis_YYYY-MM-DD-HH-MM.md
 └── state.json       # daemon state (last run times, gaps, etc.)
 ```
 
@@ -136,7 +164,8 @@ xvfb-run node daemon.js
 - **自动采集推文** — 启动 Chrome，切到 "Following" 时间线（最新排序），自动滚动采集，按天去重保存
 - **AI 分析** — 定时把采集到的推文发给 Claude 分析，输出热点话题、重点推文、情绪倾向
 - **账号发现** — 自动刷 "为你推荐" 标签页，用 AI 找出值得关注的高质量账号。自动检测关注状态，跨轮次持久化评分
-- **Dashboard** — 网页界面查看分析报告、发现报告、用户评分排行榜、推文数量图表，支持手动触发
+- **用户分析** — 抓取任意推特用户的时间线，AI 深度分析：内容质量、专业领域、预测准确性、风险提示、1-10 综合评分
+- **Dashboard** — 网页界面查看分析报告、发现报告、用户分析、推文数量图表，全部操作支持手动触发
 
 ### 快速开始
 
@@ -165,13 +194,26 @@ npm run daemon
 | `npm run collect` | 单次采集推文 |
 | `npm run analyze` | 分析最近 2 小时推文 |
 | `npm run discover` | 发现值得关注的账号 |
-| `npm run dashboard` | 只启动 Dashboard |
+| `npm run profile -- --handle <用户>` | 抓取某用户推文 |
+| `npm run profile -- --handle <用户> --analyze` | 分析某用户推文 |
+| `npm run dashboard` | 只启动 Dashboard（纯手动模式） |
 | `npm run login` | 登录推特 |
 
 ### 部署
 
 - **Windows Server**（带桌面）— 直接跑，没问题
 - **Linux VPS**（无屏幕）— 用 `xvfb-run node daemon.js`
+
+### 用户分析
+
+在 Dashboard 的 **Profiles** 标签页中输入用户名即可抓取和分析，也可以命令行操作：
+
+```bash
+node profile.js --handle cissan_9984 --max-scrolls 50    # 抓取
+node profile.js --handle cissan_9984 --analyze --days 30  # 分析
+```
+
+分析内容：内容质量、专业领域、预测准确性（尤其是行情/加密判断）、发帖习惯、综合评分（1-10）、风险提示。
 
 ### 账号发现机制
 
